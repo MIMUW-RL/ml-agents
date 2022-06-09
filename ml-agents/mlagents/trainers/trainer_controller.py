@@ -29,7 +29,8 @@ from mlagents.trainers.behavior_id_utils import BehaviorIdentifiers
 from mlagents.trainers.agent_processor import AgentManager
 from mlagents import torch_utils
 from mlagents.torch_utils.globals import get_rank
-
+from time import sleep
+import sys
 
 class TrainerController:
     def __init__(
@@ -67,6 +68,8 @@ class TrainerController:
         np.random.seed(training_seed)
         torch_utils.torch.manual_seed(training_seed)
         self.rank = get_rank()
+        self.global_step = 0
+        self.restart_interval = 50000
 
     @timed
     def _save_models(self):
@@ -165,6 +168,8 @@ class TrainerController:
         for behavior_id in behavior_ids:
             self._create_trainer_and_manager(env_manager, behavior_id)
 
+
+
     @timed
     def start_learning(self, env_manager: EnvManager) -> None:
         self._create_output_path(self.output_path)
@@ -173,9 +178,24 @@ class TrainerController:
             self._reset_env(env_manager)
             self.param_manager.log_current_lesson()
             while self._not_done_training():
+                
                 n_steps = self.advance(env_manager)
+                
+                self.global_step += n_steps
+                        
                 for _ in range(n_steps):
                     self.reset_env_if_ready(env_manager)
+                if (self.global_step > 0) and (self.global_step % self.restart_interval == 0):
+                    sys.setrecursionlimit(100_000)
+                    print(f"restarting workers at global step {self.global_step}")
+                    l = len(env_manager.env_workers)
+                    for i in range(l):
+                        env_manager.env_workers[i].process.terminate()
+                        sleep(1)
+                        env_manager.env_workers[i] = env_manager.create_worker(
+                        i , env_manager.step_queue, env_manager.env_factory, env_manager.run_options
+                        )
+                    
             # Stop advancing trainers
             self.join_threads()
         except (

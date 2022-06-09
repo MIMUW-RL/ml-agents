@@ -189,6 +189,7 @@ class TrainerController:
                     sys.setrecursionlimit(100_000)
                     print(f"restarting workers at global step {self.global_step}")
                     l = len(env_manager.env_workers)
+                    env_manager.reset(env_manager.env_parameters)
                     for i in range(l):
                         env_manager.env_workers[i].process.terminate()
                         sleep(1)

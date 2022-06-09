@@ -69,6 +69,7 @@ class TrainerController:
         torch_utils.torch.manual_seed(training_seed)
         self.rank = get_rank()
         self.global_step = 0
+        self.global_resets = 0
         self.restart_interval = 50_000
 
     @timed
@@ -180,9 +181,7 @@ class TrainerController:
             while self._not_done_training():
                 
                 n_steps = self.advance(env_manager)
-                
                 self.global_step += 1
-                        
                 for _ in range(n_steps):
                     self.reset_env_if_ready(env_manager)
                 if (self.global_step > 0) and (self.global_step % self.restart_interval == 0):
@@ -193,9 +192,12 @@ class TrainerController:
                     for i in range(l):
                         env_manager.env_workers[i].process.terminate()
                         sleep(1)
+                        env_manager.env_workers[i].process.close()
                         env_manager.env_workers[i] = env_manager.create_worker(
-                        i , env_manager.step_queue, env_manager.env_factory, env_manager.run_options
+                        i, env_manager.step_queue, env_manager.env_factory, env_manager.run_options
                         )
+
+                    self.global_resets += 1
                     env_manager.reset(env_manager.env_parameters)
                     
             # Stop advancing trainers

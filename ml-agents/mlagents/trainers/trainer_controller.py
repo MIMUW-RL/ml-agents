@@ -181,7 +181,7 @@ class TrainerController:
                 
                 n_steps = self.advance(env_manager)
                 
-                self.global_step += n_steps
+                self.global_step += 1
                         
                 for _ in range(n_steps):
                     self.reset_env_if_ready(env_manager)

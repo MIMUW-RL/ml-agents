@@ -69,7 +69,7 @@ class TrainerController:
         torch_utils.torch.manual_seed(training_seed)
         self.rank = get_rank()
         self.global_step = 0
-        self.restart_interval = 50000
+        self.restart_interval = 50_000
 
     @timed
     def _save_models(self):
@@ -195,6 +195,7 @@ class TrainerController:
                         env_manager.env_workers[i] = env_manager.create_worker(
                         i , env_manager.step_queue, env_manager.env_factory, env_manager.run_options
                         )
+                    env_manager.reset(env_manager.env_parameters)
                     
             # Stop advancing trainers
             self.join_threads()

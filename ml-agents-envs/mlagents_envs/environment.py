@@ -48,6 +48,8 @@ from mlagents_envs.communicator_objects.unity_input_pb2 import UnityInputProto
 
 from .rpc_communicator import RpcCommunicator
 import signal
+import json
+from google.protobuf.json_format import MessageToJson
 
 logger = get_logger(__name__)
 
@@ -232,6 +234,7 @@ class UnityEnvironment(BaseEnv):
             capabilities=UnityEnvironment._get_capabilities_proto(),
             num_areas=num_areas,
         )
+
         try:
             aca_output = self._send_academy_parameters(rl_init_parameters_in)
             aca_params = aca_output.rl_initialization_output
@@ -290,6 +293,7 @@ class UnityEnvironment(BaseEnv):
             # Each BrainParameter in the rl_initialization_output should have at least one AgentInfo
             # Get that agent, because we need some of its observations.
             agent_infos = output.rl_output.agentInfos[brain_param.brain_name]
+            
             if agent_infos.value:
                 agent = agent_infos.value[0]
                 new_spec = behavior_spec_from_proto(brain_param, agent)
@@ -315,16 +319,28 @@ class UnityEnvironment(BaseEnv):
 
     def reset(self) -> None:
         if self._loaded:
+            print(f"resetting env")
             outputs = self._communicator.exchange(
                 self._generate_reset_input(), self._poll_process
             )
             if outputs is None:
                 raise UnityCommunicatorStoppedException("Communicator has exited.")
             self._update_behavior_specs(outputs)
+                        
             rl_output = outputs.rl_output
             self._update_state(rl_output)
             self._is_first_message = False
             self._env_actions.clear()
+            for brain_p in outputs.rl_initialization_output.brain_parameters:
+                brain_name = brain_p.brain_name            
+                (
+                    decision_steps,
+                    terminal_steps,
+                ) = self.get_steps(brain_name)
+
+                for idx, agent_id in enumerate( decision_steps ):
+                    print(f"team {brain_name}, agent id={agent_id} is being trained")
+                    logger.info(f"team {brain_name}, agent id={agent_id} is being trained")
         else:
             raise UnityEnvironmentException("No Unity environment is loaded.")
 
@@ -348,6 +364,11 @@ class UnityEnvironment(BaseEnv):
             outputs = self._communicator.exchange(step_input, self._poll_process)
         if outputs is None:
             raise UnityCommunicatorStoppedException("Communicator has exited.")
+
+        #with open("agent_info_last.json", "w") as jsfile:
+        #    actual_json_text = MessageToJson(outputs)
+        #    jsfile.write(actual_json_text)
+
         self._update_behavior_specs(outputs)
         rl_output = outputs.rl_output
         self._update_state(rl_output)

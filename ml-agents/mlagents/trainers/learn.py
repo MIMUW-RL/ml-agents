@@ -52,7 +52,7 @@ def parse_command_line(argv: Optional[List[str]] = None) -> RunOptions:
     return RunOptions.from_argparse(args)
 
 
-def run_training(run_seed: int, options: RunOptions, num_areas: int) -> None:
+def run_training(run_seed: int, options: RunOptions, num_areas: int, restart_interval) -> None:
     """
     Launches training session.
     :param run_seed: Random seed used for training.
@@ -125,6 +125,7 @@ def run_training(run_seed: int, options: RunOptions, num_areas: int) -> None:
             env_parameter_manager,
             not checkpoint_settings.inference,
             run_seed,
+            restart_interval
         )
 
     # Begin training
@@ -253,7 +254,11 @@ def run_cli(options: RunOptions) -> None:
     if options.env_settings.seed == -1:
         run_seed = np.random.randint(0, 10000)
         logger.debug(f"run_seed set to {run_seed}")
-    run_training(run_seed, options, num_areas)
+
+    if options.env_settings.restart_interval:        
+        run_training(run_seed, options, num_areas, options.env_settings.restart_interval)
+    else:
+        run_training(run_seed, options, num_areas, None)
 
 
 def main():

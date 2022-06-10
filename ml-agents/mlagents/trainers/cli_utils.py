@@ -298,6 +298,13 @@ def _create_parser() -> argparse.ArgumentParser:
         action=DetectDefault,
         help='Settings for the default torch.device used in training, for example, "cpu", "cuda", or "cuda:0"',
     )
+
+    argparser.add_argument(
+        "--restart-interval",
+        default=None,
+        action=DetectDefault,
+        help="Restart interval",
+    )
     return argparser
 
 

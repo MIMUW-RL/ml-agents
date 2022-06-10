@@ -41,6 +41,7 @@ class TrainerController:
         param_manager: EnvironmentParameterManager,
         train: bool,
         training_seed: int,
+        restart_interval: int = None,
     ):
         """
         :param output_path: Path to save the model.
@@ -70,7 +71,7 @@ class TrainerController:
         self.rank = get_rank()
         self.global_step = 0
         self.global_resets = 0
-        self.restart_interval = 50_000
+        self.restart_interval = restart_interval
 
     @timed
     def _save_models(self):
@@ -184,21 +185,22 @@ class TrainerController:
                 self.global_step += 1
                 for _ in range(n_steps):
                     self.reset_env_if_ready(env_manager)
-                if (self.global_step > 0) and (self.global_step % self.restart_interval == 0):
-                    sys.setrecursionlimit(100_000)
-                    print(f"restarting workers at global step {self.global_step}")
-                    l = len(env_manager.env_workers)
-                    env_manager.reset(env_manager.env_parameters)
-                    for i in range(l):
-                        env_manager.env_workers[i].process.terminate()
-                        sleep(1)
-                        env_manager.env_workers[i].process.close()
-                        env_manager.env_workers[i] = env_manager.create_worker(
-                        i, env_manager.step_queue, env_manager.env_factory, env_manager.run_options
-                        )
+                if self.restart_interval is not None:
+                    if (self.global_step > 0) and (self.global_step % self.restart_interval == 0):
+                        sys.setrecursionlimit(100_000)
+                        print(f"restarting workers at global step {self.global_step}")
+                        l = len(env_manager.env_workers)
+                        env_manager.reset(env_manager.env_parameters)
+                        for i in range(l):
+                            env_manager.env_workers[i].process.terminate()
+                            sleep(1)
+                            env_manager.env_workers[i].process.close()
+                            env_manager.env_workers[i] = env_manager.create_worker(
+                            i, env_manager.step_queue, env_manager.env_factory, env_manager.run_options
+                            )
 
-                    self.global_resets += 1
-                    env_manager.reset(env_manager.env_parameters)
+                        self.global_resets += 1
+                        env_manager.reset(env_manager.env_parameters)
                     
             # Stop advancing trainers
             self.join_threads()
@@ -246,6 +248,7 @@ class TrainerController:
         # If ghost trainer swapped teams
         ghost_controller_reset = self.ghost_controller.should_reset()
         if param_must_reset or ghost_controller_reset:
+            print("INTERNAL RESET")
             self._reset_env(env)  # This reset also sends the new config to env
             self.end_trainer_episodes()
         elif updated:

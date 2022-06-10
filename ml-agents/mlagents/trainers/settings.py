@@ -1,3 +1,4 @@
+from ast import parse
 import os.path
 import warnings
 
@@ -825,6 +826,7 @@ class EnvironmentSettings:
     num_envs: int = attr.ib(default=parser.get_default("num_envs"))
     num_areas: int = attr.ib(default=parser.get_default("num_areas"))
     seed: int = parser.get_default("seed")
+    restart_interval: int = parser.get_default("restart_interval")
     max_lifetime_restarts: int = parser.get_default("max_lifetime_restarts")
     restarts_rate_limit_n: int = parser.get_default("restarts_rate_limit_n")
     restarts_rate_limit_period_s: int = parser.get_default(

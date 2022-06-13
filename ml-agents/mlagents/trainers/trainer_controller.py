@@ -250,9 +250,9 @@ class TrainerController:
         ghost_controller_reset = self.ghost_controller.should_reset()
         if param_must_reset or ghost_controller_reset:
             sys.setrecursionlimit(100_000)
-            print(f"restarting workers at ghost_controller_reset")
+            print(f"restarting workers at ghost_controller_reset, global_resets={self.global_resets}")
             l = len(env.env_workers)
-            env.reset(env.env_parameters)
+            self._reset_env(env)  # This reset also sends the new config to env
             for i in range(l):
                 env.env_workers[i].process.terminate()
                 sleep(1)
@@ -262,7 +262,7 @@ class TrainerController:
                 )
 
             self.global_resets += 1
-            self._reset_env(env)  # This reset also sends the new config to env
+            
             self.end_trainer_episodes()
         elif updated:
             env.set_env_parameters(self.param_manager.get_current_samplers())

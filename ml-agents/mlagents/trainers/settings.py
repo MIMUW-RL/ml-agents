@@ -827,6 +827,7 @@ class EnvironmentSettings:
     num_areas: int = attr.ib(default=parser.get_default("num_areas"))
     seed: int = parser.get_default("seed")
     restart_interval: int = parser.get_default("restart_interval")
+    ghost_restart: int = parser.get_default("ghost_restart")
     max_lifetime_restarts: int = parser.get_default("max_lifetime_restarts")
     restarts_rate_limit_n: int = parser.get_default("restarts_rate_limit_n")
     restarts_rate_limit_period_s: int = parser.get_default(

@@ -52,7 +52,7 @@ def parse_command_line(argv: Optional[List[str]] = None) -> RunOptions:
     return RunOptions.from_argparse(args)
 
 
-def run_training(run_seed: int, options: RunOptions, num_areas: int, restart_interval) -> None:
+def run_training(run_seed: int, options: RunOptions, num_areas: int, restart_interval, ghost_restart) -> None:
     """
     Launches training session.
     :param run_seed: Random seed used for training.
@@ -125,7 +125,8 @@ def run_training(run_seed: int, options: RunOptions, num_areas: int, restart_int
             env_parameter_manager,
             not checkpoint_settings.inference,
             run_seed,
-            restart_interval
+            restart_interval,
+            ghost_restart
         )
 
     # Begin training
@@ -255,11 +256,15 @@ def run_cli(options: RunOptions) -> None:
         run_seed = np.random.randint(0, 10000)
         logger.debug(f"run_seed set to {run_seed}")
 
-    if options.env_settings.restart_interval:        
-        run_training(run_seed, options, num_areas, options.env_settings.restart_interval)
+    if options.env_settings.restart_interval and options.env_settings.ghost_restart:        
+        run_training(run_seed, options, num_areas, options.env_settings.restart_interval, options.env_settings.ghost_restart)
+        
+    elif options.env_settings.restart_interval and options.env_settings.ghost_restart is None:
+        run_training(run_seed, options, num_areas, options.env_settings.restart_interval, None)
+    elif options.env_settings.restart_interval is None and options.env_settings.ghost_restart:
+        run_training(run_seed, options, num_areas, None, options.env_settings.ghost_restart)
     else:
-        run_training(run_seed, options, num_areas, None)
-
+        run_training(run_seed, options, num_areas, None, None)
 
 def main():
     run_cli(parse_command_line())

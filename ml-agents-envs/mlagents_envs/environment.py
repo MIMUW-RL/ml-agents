@@ -340,8 +340,8 @@ class UnityEnvironment(BaseEnv):
 
                 for idx, agent_id in enumerate( decision_steps ):
                     pass
-                    #print(f"team {brain_name}, agent id={agent_id} is being trained")
-                    #logger.info(f"team {brain_name}, agent id={agent_id} is being trained")
+                    print(f"team {brain_name}, agent id={agent_id} is being trained")
+                    logger.info(f"team {brain_name}, agent id={agent_id} is being trained")
         else:
             raise UnityEnvironmentException("No Unity environment is loaded.")
 

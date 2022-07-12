@@ -305,6 +305,20 @@ def _create_parser() -> argparse.ArgumentParser:
         action=DetectDefault,
         help="Restart interval",
     )
+
+    argparser.add_argument(
+        "--ghost-restart",
+        default=None,
+        action=DetectDefault,
+        help="Ghost Restart interval",
+    )
+
+    argparser.add_argument(
+        "--cpu",
+        default=None,
+        action=DetectDefault,
+        help="cpu inference",
+    )
     return argparser
 
 

@@ -214,6 +214,9 @@ class GhostTrainer(Trainer):
             )
             self.change_current_elo(change)
             self._stats_reporter.add_stat("Self-play/ELO", self.current_elo)
+            
+            #print(f"Learned team id={self._learning_team}")
+            
 
     def advance(self) -> None:
         """
@@ -237,6 +240,7 @@ class GhostTrainer(Trainer):
                         # adds to wrapped trainers queue
                         internal_trajectory_queue.put(t)
                         self._process_trajectory(t)
+                    
                 except AgentManagerQueue.Empty:
                     pass
             else:

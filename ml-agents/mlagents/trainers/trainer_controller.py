@@ -42,6 +42,7 @@ class TrainerController:
         train: bool,
         training_seed: int,
         restart_interval: int = None,
+        ghost_restart: int = None,
     ):
         """
         :param output_path: Path to save the model.
@@ -72,6 +73,7 @@ class TrainerController:
         self.global_step = 0
         self.global_resets = 0
         self.restart_interval = restart_interval
+        self.ghost_restart = ghost_restart
 
     @timed
     def _save_models(self):
@@ -253,15 +255,16 @@ class TrainerController:
             
             l = len(env.env_workers)
             self._reset_env(env)  # This reset also sends the new config to env
-            if(self.global_resets % 2 == 1):
-                print(f"restarting workers at ghost_controller_reset {self.global_resets}")
-                for i in range(l):
-                    env.env_workers[i].process.terminate()
-                    sleep(1)
-                    env.env_workers[i].process.close()
-                    env.env_workers[i] = env.create_worker(
-                    i, env.step_queue, env.env_factory, env.run_options
-                    )
+            if self.ghost_restart is not None:
+                if(self.global_resets % self.ghost_restart == self.ghost_restart-1):
+                    print(f"restarting workers at ghost_controller_reset {self.global_resets}")
+                    for i in range(l):
+                        env.env_workers[i].process.terminate()
+                        sleep(1)
+                        env.env_workers[i].process.close()
+                        env.env_workers[i] = env.create_worker(
+                        i, env.step_queue, env.env_factory, env.run_options
+                        )
 
             self.global_resets += 1
             

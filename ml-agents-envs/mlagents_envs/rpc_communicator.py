@@ -32,7 +32,7 @@ class UnityToExternalServicerImplementation(UnityToExternalProtoServicer):
 
 
 class RpcCommunicator(Communicator):
-    def __init__(self, worker_id=0, base_port=5005, timeout_wait=30):
+    def __init__(self, worker_id=0, base_port=5005, timeout_wait=100):
         """
         Python side of the grpc communication. Python is the server and Unity the client
 

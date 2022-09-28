@@ -8,6 +8,7 @@ from typing import Dict, Set, List
 from collections import defaultdict
 
 import numpy as np
+import json
 
 from mlagents_envs.logging_util import get_logger
 from mlagents.trainers.env_manager import EnvManager, EnvironmentStep
@@ -105,6 +106,13 @@ class TrainerController:
         env_manager.reset(config=new_config)
         # Register any new behavior ids that were generated on the reset.
         self._register_new_behaviors(env_manager, env_manager.first_step_infos)
+        print(self.ghost_controller.get_learning_team)
+        #dump learning team to json
+        dic = {}
+        dic["learning_team_id"] = self.ghost_controller.get_learning_team
+        with open('learning_team.json', 'w') as f:
+            json.dump(dic, f)
+
 
     def _not_done_training(self) -> bool:
         return (

@@ -2,6 +2,11 @@
 
 # Unity ML-Agents Toolkit
 
+## Local fork edits
+
+* branch *jaco* added functionality of restarts (not needed now anymore),
+* branch *team_dump* functionality of dumping the current trained team into json file (then readed by C# trainer),
+
 [![docs badge](https://img.shields.io/badge/docs-reference-blue.svg)](https://github.com/Unity-Technologies/ml-agents/tree/release_19_docs/docs/)
 
 [![license badge](https://img.shields.io/badge/license-Apache--2.0-green.svg)](LICENSE.md)
